@@ -68,10 +68,30 @@ class MaildirAdapter(Mapping):
   def __len__(self):
     return len(self.mbox)
 
+class HTMLTemplate:
+  def __init__(self, template):
+    self.template = Template(template)
+
+  def substitute(*args, **kwargs):
+    if not args:
+      raise TypeError("descriptor 'substitute' of 'HTMLTemplate' object needs an argument")
+    self, *args = args  # allow the "self" keyword be passed
+    if len(args) > 1:
+      raise TypeError('Too many positional arguments')
+    if not args:
+      mapping = kwargs
+    elif kws:
+      mapping = _ChainMap(kwargs, args[0])
+    else:
+      mapping = args[0]
+    escaped_mapping = {k: v if k.startswith('raw_') else escape(str(v)) for k, v in mapping.items()}
+
+    return self.template.substitute(escaped_mapping)
+
 PATH_RE = re.compile('^/(?P<id>[^/]+)/(?P<part>\d+)$')
-HTML_TPL = Template('<!DOCTYPE html><html><head></head><body>$content</body></html>')
-MSG_TPL = Template('<div><h2>$subject</h2><p>Date: $date</p><ul>$links</ul></div>')
-LINK_TPL = Template('<li><a href="/$id/$part">$type</a></li>')
+HTML_TPL = HTMLTemplate('<!DOCTYPE html><html><head></head><body>$raw_content</body></html>')
+MSG_TPL = HTMLTemplate('<div><h2>$subject</h2><p>Date: $date</p><ul>$raw_links</ul></div><hr>')
+LINK_TPL = HTMLTemplate('<li><a href="/$id/$part">$type</a></li>')
 
 class MaildirHTTPRequestHandler(BaseHTTPRequestHandler):
   def __init__(self, *args, maildir_path, **kwargs):
@@ -104,9 +124,9 @@ class MaildirHTTPRequestHandler(BaseHTTPRequestHandler):
       links = []
       for part, type in m.parts.items():
         links.append(LINK_TPL.substitute(id=id, part=part, type=type))
-      content.append(MSG_TPL.substitute(id=id, subject=m.subject, date=m.date, links=''.join(links)))
+      content.append(MSG_TPL.substitute(id=id, subject=m.subject, date=m.date, raw_links=''.join(links)))
 
-    resp = HTML_TPL.substitute(content=''.join(content))
+    resp = HTML_TPL.substitute(raw_content=''.join(content))
     self.html(HTTPStatus.OK, resp)
 
   def message_part(self, id, part):
