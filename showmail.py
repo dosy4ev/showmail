@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-# TODO: sorting
 # TODO: escaping
 # TODO: docker
 
 import re
+import time
 from html import escape
 from string import Template
 from functools import partial
@@ -12,6 +12,7 @@ from collections import namedtuple
 from collections.abc import Mapping
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, test
+from email.utils import parsedate
 from email.header import make_header, decode_header
 from mailbox import Maildir
 from urllib.parse import quote, unquote
@@ -20,6 +21,9 @@ MessagePart = namedtuple('MessagePart', 'type content')
 
 def header_to_str(header):
   return str(make_header(decode_header(header)))
+            
+def extract_date(item):
+  return parsedate(item[1].date)
 
 class MessageAdapter:
   def __init__(self, message):
@@ -96,7 +100,7 @@ class MaildirHTTPRequestHandler(BaseHTTPRequestHandler):
 
   def list_messages(self):
     content = []
-    for id, m in self.maildir.items():
+    for id, m in sorted(self.maildir.items(), key=extract_date, reverse=True):
       links = []
       for part, type in m.parts.items():
         links.append(LINK_TPL.substitute(id=id, part=part, type=type))
