@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-# TODO: escaping
-# TODO: docker
-
 import re
 import time
 from html import escape
