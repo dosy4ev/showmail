@@ -87,7 +87,8 @@ class HTMLTemplate:
 
 PATH_RE = re.compile('^/(?P<id>[^/]+)/(?P<part>\d+)$')
 HTML_TPL = HTMLTemplate('<!DOCTYPE html><html><head></head><body>$raw_content</body></html>')
-MSG_TPL = HTMLTemplate('<div><h2>$subject</h2><p>Date: $date</p><ul>$raw_links</ul></div><hr>')
+MSG_TPL = HTMLTemplate('<div><h2>$subject</h2><p>Date: $date</p>'
+                       '<p>From: $addr_from</p><p>To: $addr_to</p><ul>$raw_links</ul></div><hr>')
 LINK_TPL = HTMLTemplate('<li><a href="/$id/$part">$type</a></li>')
 
 class MaildirHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -121,7 +122,8 @@ class MaildirHTTPRequestHandler(BaseHTTPRequestHandler):
       links = []
       for part, type in m.parts.items():
         links.append(LINK_TPL.substitute(id=id, part=part, type=type))
-      content.append(MSG_TPL.substitute(id=id, subject=m.subject, date=m.date, raw_links=''.join(links)))
+      content.append(MSG_TPL.substitute(id=id, subject=m.subject, date=m.date, addr_from=m.addr_from,
+                                        addr_to=m.addr_to, raw_links=''.join(links)))
 
     resp = HTML_TPL.substitute(raw_content=''.join(content))
     self.html(HTTPStatus.OK, resp)
