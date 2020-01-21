@@ -2,6 +2,7 @@
 
 import re
 import time
+
 from html import escape
 from string import Template
 from functools import partial
@@ -20,7 +21,7 @@ def header_to_str(header):
   return str(make_header(decode_header(header)))
             
 def extract_date(item):
-  return parsedate(item[1].date)
+  return time.mktime(parsedate(item[1].date))
 
 class MessageAdapter:
   def __init__(self, message):
