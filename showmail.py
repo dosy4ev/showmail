@@ -87,9 +87,9 @@ class HTMLTemplate:
     return self.template.substitute(escaped_mapping)
 
 PATH_RE = re.compile('^/(?P<id>[^/]+)/(?P<part>\d+)$')
-HTML_TPL = HTMLTemplate('<!DOCTYPE html><html><head></head><body>$raw_content</body></html>')
+HTML_TPL = HTMLTemplate('<!DOCTYPE html><html><head></head><body>\n$raw_content\n</body></html>')
 MSG_TPL = HTMLTemplate('<div><h2>$subject</h2><p>Date: $date</p>'
-                       '<p>From: $addr_from</p><p>To: $addr_to</p><ul>$raw_links</ul></div><hr>')
+                       '<p>From: $addr_from</p><p>To: $addr_to</p><ul>$raw_links</ul></div><hr>\n')
 LINK_TPL = HTMLTemplate('<li><a href="/$id/$part">$type</a></li>')
 
 class MaildirHTTPRequestHandler(BaseHTTPRequestHandler):
